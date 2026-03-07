@@ -1,13 +1,11 @@
 const { validationResult } = require('express-validator');
+const ResponseUtil = require('../utils/response');
 
-// Reusable validation middle executor
+// Reusable validation middleware executor
 const validate = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({
-            success: false,
-            errors: errors.array(),
-        });
+        return ResponseUtil.error(res, 'Validation Error', 400, errors.array());
     }
     next();
 };

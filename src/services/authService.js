@@ -2,11 +2,12 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Clinic = require('../models/Clinic');
 const config = require('../config');
+const ErrorResponse = require('../utils/errorResponse');
 
 // Generate JWT Token
 const generateToken = (userId, clinicId) => {
     return jwt.sign({ id: userId, clinicId }, config.jwtSecret, {
-        expiresIn: '7d', // Token expiry (7 days) as requested
+        expiresIn: config.jwtExpiresIn,
     });
 };
 
@@ -14,9 +15,7 @@ const registerUser = async (clinicName, clinicAddress, userName, email, password
     // 1. Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-        const error = new Error('User already exists');
-        error.statusCode = 400;
-        throw error;
+        throw new ErrorResponse('User already exists', 400);
     }
 
     // 2. Create clinic
@@ -30,7 +29,7 @@ const registerUser = async (clinicName, clinicAddress, userName, email, password
         name: userName,
         email,
         password,
-        role: role || 'admin', // First user might be admin typically, or based on input
+        role: role || 'admin',
         clinicId: clinic._id,
     });
 
@@ -52,18 +51,14 @@ const loginUser = async (email, password) => {
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
-        const error = new Error('Invalid email or password');
-        error.statusCode = 401;
-        throw error;
+        throw new ErrorResponse('Invalid email or password', 401);
     }
 
     // 2. Check if password matches
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-        const error = new Error('Invalid email or password');
-        error.statusCode = 401;
-        throw error;
+        throw new ErrorResponse('Invalid email or password', 401);
     }
 
     // 3. Generate token

@@ -1,32 +1,44 @@
 const config = require('../config');
+const ResponseUtil = require('../utils/response');
 
 const errorHandler = (err, req, res, next) => {
-    let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-    let message = err.message;
+    let error = { ...err };
+    error.message = err.message;
+
+    // Log to console for dev
+    if (config.env === 'development') {
+        console.error(err);
+    }
+
+    // Default to 500 server error if status code not set
+    let statusCode = err.statusCode || (res.statusCode === 200 ? 500 : res.statusCode);
+    let errorsPayload = null;
 
     // Mongoose bad ObjectId
     if (err.name === 'CastError' && err.kind === 'ObjectId') {
-        message = 'Resource not found';
+        error.message = 'Resource not found';
         statusCode = 404;
     }
 
     // Mongoose duplicate key
     if (err.code === 11000) {
-        message = 'Duplicate field value entered';
+        error.message = 'Duplicate field value entered';
         statusCode = 400;
     }
 
     // Mongoose validation error
     if (err.name === 'ValidationError') {
-        message = Object.values(err.errors).map((val) => val.message).join(', ');
+        error.message = Object.values(err.errors).map((val) => val.message).join(', ');
         statusCode = 400;
+        errorsPayload = Object.values(err.errors).map(v => v.message);
     }
 
-    res.status(statusCode).json({
-        success: false,
-        message,
-        stack: config.env === 'production' ? null : err.stack,
-    });
+    return ResponseUtil.error(
+        res,
+        error.message || 'Server Error',
+        statusCode,
+        errorsPayload
+    );
 };
 
 module.exports = errorHandler;
