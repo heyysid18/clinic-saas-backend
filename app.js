@@ -12,8 +12,7 @@ const errorHandler = require('./src/middleware/error');
 const app = express();
 
 // Connect to MongoDB
-// Uncomment the line below to connect. Commented out initially to avoid crash if no DB is running.
-// connectDB();
+connectDB();
 
 // Middleware
 app.use(express.json());

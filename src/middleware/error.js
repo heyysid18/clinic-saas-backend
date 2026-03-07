@@ -5,9 +5,13 @@ const errorHandler = (err, req, res, next) => {
     let error = { ...err };
     error.message = err.message;
 
-    // Log to console for dev
+    // Log to console for dev, except for standard 404s
     if (config.env === 'development') {
-        console.error(err);
+        if (res.statusCode !== 404) {
+            console.error(err.stack);
+        } else {
+            console.error(`Route Error: ${err.message}`);
+        }
     }
 
     // Default to 500 server error if status code not set
