@@ -5,15 +5,6 @@ const errorHandler = (err, req, res, next) => {
     let error = { ...err };
     error.message = err.message;
 
-    // Log to console for dev, except for standard 404s
-    if (config.env === 'development') {
-        if (res.statusCode !== 404) {
-            console.error(err.stack);
-        } else {
-            console.error(`Route Error: ${err.message}`);
-        }
-    }
-
     // Default to 500 server error if status code not set
     let statusCode = err.statusCode || (res.statusCode === 200 ? 500 : res.statusCode);
     let errorsPayload = null;
@@ -35,6 +26,15 @@ const errorHandler = (err, req, res, next) => {
         error.message = Object.values(err.errors).map((val) => val.message).join(', ');
         statusCode = 400;
         errorsPayload = Object.values(err.errors).map(v => v.message);
+    }
+
+    // Log to console for dev, except for standard 404s/401s
+    if (config.env === 'development') {
+        if (statusCode !== 404 && statusCode !== 401) {
+            console.error(err.stack);
+        } else {
+            console.error(`Route Error: ${error.message}`);
+        }
     }
 
     return ResponseUtil.error(
