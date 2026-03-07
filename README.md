@@ -63,6 +63,18 @@ src/
    ```
    *(Server should boot on `http://localhost:5001` or your configured PORT)*
 
+### Docker Setup
+If you prefer running everything in a containerized environment (Node + MongoDB):
+
+1. **Build and spin up the containers automatically**
+   ```bash
+   docker-compose up -d --build
+   ```
+2. **Access the application locally**:
+   The Docker composition explicitly exposes the backend on **Port 5000**: `http://localhost:5000`
+3. **Persisted Data**:
+   Database records are safely persisted via the attached `mongo-data` volume so you will not lose patients when tearing down containers (`docker-compose down`).
+
 ---
 
 ## API Endpoints
